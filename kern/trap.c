@@ -96,7 +96,7 @@ trap_init(void)
 	SETGATE(idt[11], 1, GD_KT, hdl11, 3);
 	SETGATE(idt[12], 1, GD_KT, hdl12, 3);
 	SETGATE(idt[13], 1, GD_KT, hdl13, 3);
-	SETGATE(idt[14], 1, GD_KT, hdl14, 3);
+	SETGATE(idt[14], 1, GD_KT, hdl14, 1);
 	SETGATE(idt[16], 1, GD_KT, hdl16, 3);
 	SETGATE(idt[17], 1, GD_KT, hdl17, 3);
 	SETGATE(idt[18], 1, GD_KT, hdl18, 3);
