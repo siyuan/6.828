@@ -21,6 +21,13 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
+	uint32_t i;
+	pte_t *pte;
+	for (i=(uint32_t)ROUNDDOWN(s, PGSIZE); i<=(uint32_t)ROUNDDOWN(s+len, PGSIZE); i+=PGSIZE) {
+		pte = pgdir_walk(curenv->env_pgdir, (void *)i, 0);
+		if ((pte == NULL) || ((*pte & PTE_U) == 0))
+			env_destroy(curenv);
+	}
 
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
@@ -70,6 +77,18 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// Return any appropriate return value.
 	// LAB 3: Your code here.
 
-	panic("syscall not implemented");
+	//panic("syscall not implemented");
+	if (syscallno == SYS_cputs) {
+		sys_cputs((const char *)a1, a2);
+		return syscallno;
+	}
+	else if (syscallno == SYS_cgetc)
+		return sys_cgetc();
+	else if (syscallno == SYS_getenvid)
+		return sys_getenvid();
+	else if (syscallno == SYS_env_destroy)
+		return sys_env_destroy(a1);
+	else
+		return -E_INVAL;
 }
 

@@ -65,6 +65,8 @@ TRAPHANDLER(hdl17, 17);
 TRAPHANDLER_NOEC(hdl18, 18);
 TRAPHANDLER_NOEC(hdl19, 19);
 
+TRAPHANDLER_NOEC(hdl48, T_SYSCALL);
+
 /*
  * Lab 3: Your code here for _alltraps
  */
