@@ -65,6 +65,25 @@ static const char *trapname(int trapno)
 	return "(unknown trap)";
 }
 
+void hdl0();
+void hdl1();
+void hdl2();
+void hdl3();
+void hdl4();
+void hdl5();
+void hdl6();
+void hdl7();
+void hdl8();
+void hdl10();
+void hdl11();
+void hdl12();
+void hdl13();
+void hdl14();
+void hdl16();
+void hdl17();
+void hdl18();
+void hdl19();
+void hdl48();
 
 void
 trap_init(void)
@@ -72,6 +91,25 @@ trap_init(void)
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
+	SETGATE(idt[0], 1, GD_KT, hdl0, 3);
+	SETGATE(idt[1], 1, GD_KT, hdl1, 3);
+	SETGATE(idt[2], 0, GD_KT, hdl2, 3);
+	SETGATE(idt[3], 1, GD_KT, hdl3, 3);
+	SETGATE(idt[4], 1, GD_KT, hdl4, 3);
+	SETGATE(idt[5], 1, GD_KT, hdl5, 3);
+	SETGATE(idt[6], 1, GD_KT, hdl6, 3);
+	SETGATE(idt[7], 1, GD_KT, hdl7, 3);
+	SETGATE(idt[8], 1, GD_KT, hdl8, 3);
+	SETGATE(idt[10], 1, GD_KT, hdl10, 3);
+	SETGATE(idt[11], 1, GD_KT, hdl11, 3);
+	SETGATE(idt[12], 1, GD_KT, hdl12, 3);
+	SETGATE(idt[13], 1, GD_KT, hdl13, 3);
+	SETGATE(idt[14], 1, GD_KT, hdl14, 1);
+	SETGATE(idt[16], 1, GD_KT, hdl16, 3);
+	SETGATE(idt[17], 1, GD_KT, hdl17, 3);
+	SETGATE(idt[18], 1, GD_KT, hdl18, 3);
+	SETGATE(idt[19], 1, GD_KT, hdl19, 3);
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, hdl48, 3);
 
 	// Per-CPU setup 
 	trap_init_percpu();
@@ -173,6 +211,19 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+	if (tf->tf_trapno == T_PGFLT) {
+		page_fault_handler (tf);
+		return;
+	}
+	if (tf->tf_trapno == T_BRKPT) {
+		monitor (tf);
+		return;
+	}
+	if (tf->tf_trapno == T_SYSCALL) {
+		tf->tf_regs.reg_eax = syscall (tf->tf_regs.reg_eax, tf->tf_regs.reg_edx,
+				tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+		return;
+	}
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -264,6 +315,8 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	if ((tf->tf_cs & 3) == 0)
+		panic("kernel mode page fault\n");
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
