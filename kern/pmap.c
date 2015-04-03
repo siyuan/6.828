@@ -204,7 +204,11 @@ mem_init(void)
 	//       overwrite memory.  Known as a "guard page".
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir, KSTACKTOP-KSTKSIZE, KSTKSIZE-1, PADDR(bootstack), PTE_W | PTE_P);
+	int i;
+	for (i=0; i<NCPU; i++) {
+		boot_map_region(kern_pgdir, KSTACKTOP-i*(KSTKSIZE+KSTKGAP)-KSTKSIZE, KSTKSIZE,
+				PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+	}
 
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
@@ -214,7 +218,7 @@ mem_init(void)
 	// we just set up the mapping anyway.
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir, KERNBASE, (0xffffffff) - KERNBASE, 0, PTE_W | PTE_P);
+	boot_map_region(kern_pgdir, KERNBASE, (0xffffffff) - KERNBASE+1, 0, PTE_W | PTE_P);
 
 	// Initialize the SMP-related parts of the memory map
 	mem_init_mp();
@@ -315,9 +319,13 @@ page_init(void)
 
 	pages[0].pp_ref = 1;
 	for (i=1; i<npages_basemem; i++) {
-		pages[i].pp_ref = 0;
-		pages[i].pp_link = page_free_list;
-		page_free_list = &pages[i];
+		if (i == MPENTRY_PADDR/PGSIZE)
+			pages[i].pp_ref = 1;
+		else {
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
+		}
 	}
 	for (i=IOPHYSMEM/PGSIZE; i<PADDR(boot_alloc(0))/PGSIZE; i++)
 		pages[i].pp_ref = 1;
@@ -438,7 +446,7 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 	// Fill this function in
 	int i;
 	pte_t *ptetmp;
-	for (i=0; i<=size; i+=PGSIZE) {
+	for (i=0; i<size; i+=PGSIZE) {
 		ptetmp = pgdir_walk(pgdir, (uintptr_t *)(va + i), 1);
 		*ptetmp = ROUNDDOWN(pa + i, PGSIZE) | perm | PTE_P;
 	}
