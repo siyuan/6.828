@@ -219,7 +219,7 @@ sys_page_map(envid_t srcenvid, void *srcva,
 	//panic("sys_page_map not implemented");
 	struct Env *srcenv, *dstenv;
 	int ret;
-	pte_t *srcpte, *dstpte;
+	pte_t *srcpte;
 	struct Page *pg;
 	ret = envid2env(srcenvid, &srcenv, 1);
 	if (ret < 0)
@@ -231,20 +231,15 @@ sys_page_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	if (((uint32_t)dstva >= UTOP) || ((uint32_t)dstva % PGSIZE != 0))
 		return -E_INVAL;
-	srcpte = pgdir_walk(srcenv->env_pgdir, srcva, 0);
-	if (srcenv == NULL)
+	pg = page_lookup(srcenv->env_pgdir, srcva, &srcpte);
+	if (pg == NULL)
 		return -E_INVAL;
-	dstpte = pgdir_walk(dstenv->env_pgdir, dstva, 1);
-	if (dstpte == NULL)
-		return -E_NO_MEM;
 	if ((~PTE_SYSCALL & perm) != 0)
 		return -E_INVAL;
 	if ((perm & PTE_W) && !(*srcpte & PTE_W))
 		return -E_INVAL;
-	*dstpte = PTE_ADDR(*srcpte) | perm;
-	pg = pa2page(PTE_ADDR(*srcpte));
-	pg->pp_ref++;
-	return 0;
+	ret = page_insert(dstenv->env_pgdir, pg, dstva, perm);
+	return ret;
 }
 
 // Unmap the page of memory at 'va' in the address space of 'envid'.
