@@ -190,8 +190,10 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if (pg == NULL)
 		return -E_NO_MEM;
 	ret = page_insert(newenv->env_pgdir, pg, va, perm);
-	if (ret < 0)
+	if (ret < 0) {
+		page_free(pg);
 		return ret;
+	}
 	return 0;
 }
 
