@@ -189,7 +189,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	pg = page_alloc(ALLOC_ZERO);
 	if (pg == NULL)
 		return -E_NO_MEM;
-	ret = page_insert(newenv->env_pgdir, pg, va, perm);
+	ret = page_insert(newenv->env_pgdir, pg, va, perm | PTE_U | PTE_P);
 	if (ret < 0) {
 		page_free(pg);
 		return ret;
@@ -247,7 +247,7 @@ sys_page_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	if ((perm & PTE_W) && !(*srcpte & PTE_W))
 		return -E_INVAL;
-	ret = page_insert(dstenv->env_pgdir, pg, dstva, perm);
+	ret = page_insert(dstenv->env_pgdir, pg, dstva, perm | PTE_U | PTE_P);
 	return ret;
 }
 
