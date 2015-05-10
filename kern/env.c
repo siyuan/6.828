@@ -288,10 +288,15 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
 	struct Page *pp;
-	int i;
+	int i, r;
 	pte_t *pte;
 
 	for(i=ROUNDDOWN((uintptr_t)va, PGSIZE); i<ROUNDUP((uintptr_t)va + len, PGSIZE); i+=PGSIZE) {
+		pp = page_alloc(0);
+		r = page_insert(e->env_pgdir, pp, (uintptr_t *)i, PTE_U | PTE_W | PTE_P);
+		if (r != 0)
+			page_free(pp);
+#if 0
 		pte = pgdir_walk(e->env_pgdir, (uintptr_t *)i, 1);
 		if (!pte)
 			panic("region_alloc: pgdir_walk err\n");
@@ -301,6 +306,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 				panic("region_alloc: page_alloc err\n");
 			*pte = page2pa(pp) | PTE_U | PTE_W | PTE_P;
 		}
+#endif
 	}
 }
 
