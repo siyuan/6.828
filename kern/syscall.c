@@ -320,7 +320,43 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	//panic("sys_ipc_try_send not implemented");
+	struct Env *newenv;
+	int ret;
+	pte_t *srcpte;
+	struct Page *pg;
+
+	ret = envid2env(envid, &newenv, 0);
+	if (ret < 0)
+		return ret;
+	if (!newenv->env_ipc_recving)
+		return -E_IPC_NOT_RECV;
+	newenv->env_ipc_recving = 0;
+	newenv->env_ipc_from = curenv->env_id;
+	newenv->env_ipc_value = value;
+	newenv->env_ipc_perm = 0;
+
+	if ((((size_t)srcva) < UTOP) && ((size_t)newenv->env_ipc_dstva < UTOP)) {
+		if ((size_t)srcva % PGSIZE != 0)
+			return -E_INVAL;
+		if ((~PTE_SYSCALL & perm) != 0)
+			return -E_INVAL;
+		pg = page_lookup(curenv->env_pgdir, srcva, &srcpte);
+		if (pg == NULL)
+			return -E_INVAL;
+		if ((perm & PTE_W) && !(*srcpte & PTE_W))
+			return -E_INVAL;
+		ret = page_insert(newenv->env_pgdir, pg,
+				newenv->env_ipc_dstva, perm | PTE_U | PTE_P);
+		if (ret < 0)
+			return ret;
+		newenv->env_ipc_perm = perm;
+	}
+
+	newenv->env_status = ENV_RUNNABLE;
+	newenv->env_tf.tf_regs.reg_eax = 0;
+
+	return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -338,7 +374,12 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
+	//panic("sys_ipc_recv not implemented");
+	curenv->env_ipc_recving = 1;
+	if (((size_t)dstva < UTOP) && !((size_t)dstva % PGSIZE))
+		return -E_INVAL;
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_status = ENV_NOT_RUNNABLE;
 	return 0;
 }
 
@@ -377,6 +418,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_page_unmap(a1, (void *)a2);
 	else if (syscallno == SYS_env_set_pgfault_upcall)
 		return sys_env_set_pgfault_upcall(a1, (void *)a2);
+	else if (syscallno == SYS_ipc_try_send)
+		return sys_ipc_try_send(a1, a2, (void *)a3, a4);
+	else if (syscallno == SYS_ipc_recv)
+		return sys_ipc_recv((void *)a1);
 	else
 		return -E_INVAL;
 }
