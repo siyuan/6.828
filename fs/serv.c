@@ -245,9 +245,12 @@ serve_write(envid_t envid, struct Fsreq_write *req)
 	if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
 		return r;
 	r = file_write(o->o_file, req->req_buf, req->req_n, o->o_fd->fd_offset);
-	if (r >= 0)
+	if (r <= 0)
+		return r;
+	else {
 		o->o_fd->fd_offset += r;
-	return r;
+		return r;
+	}
 }
 
 // Stat ipc->stat.req_fileid.  Return the file's struct Stat to the
