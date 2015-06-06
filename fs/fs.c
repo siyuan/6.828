@@ -158,7 +158,16 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 			return -E_NOT_FOUND;
 	}
 	else if (filebno < NDIRECT + NINDIRECT) {
-		uint32_t *pf_indirect = (uint32_t *)f->f_indirect;
+		uint32_t *pf_indirect;
+		if (!f->f_indirect) {
+			if (!alloc)
+				return -E_NOT_FOUND;
+			if ((ablk = alloc_block()) < 0)
+				return ablk;
+			memset(diskaddr(ablk), 0, BLKSIZE);
+			f->f_indirect = ablk;
+		}
+		pf_indirect = (uint32_t *)diskaddr(f->f_indirect);
 		if (pf_indirect[filebno-NDIRECT]) {
 			*ppdiskbno = &pf_indirect[filebno-NDIRECT];
 			return 0;
@@ -166,6 +175,7 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 		else if (alloc) {
 			if ((ablk = alloc_block()) < 0)
 				return ablk;
+			memset(diskaddr(ablk), 0, BLKSIZE);
 			pf_indirect[filebno-NDIRECT] = ablk;
 			*ppdiskbno = &pf_indirect[filebno-NDIRECT];
 			return 0;
