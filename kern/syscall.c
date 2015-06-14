@@ -408,7 +408,8 @@ static int
 sys_time_msec(void)
 {
 	// LAB 6: Your code here.
-	panic("sys_time_msec not implemented");
+	//panic("sys_time_msec not implemented");
+	return time_msec();
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
@@ -452,6 +453,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_ipc_recv((void *)a1);
 	else if (syscallno == SYS_env_set_trapframe)
 		return sys_env_set_trapframe(a1, (struct Trapframe *)a2);
+	else if (syscallno == SYS_time_msec)
+		return sys_time_msec();
 	else
 		return -E_INVAL;
 }
