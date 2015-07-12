@@ -669,23 +669,13 @@
 
 /* Transmit Descriptor */
 struct e1000_tx_desc {
-    uint64_t buffer_addr;       /* Address of the descriptor's data buffer */
-    union {
-        uint32_t data;
-        struct {
-            uint16_t length;    /* Data buffer length */
-            uint8_t cso;        /* Checksum offset */
-            uint8_t cmd;        /* Descriptor control */
-        } flags;
-    } lower;
-    union {
-        uint32_t data;
-        struct {
-            uint8_t status;     /* Descriptor status */
-            uint8_t css;        /* Checksum start */
-            uint16_t special;
-        } fields;
-    } upper;
+	uint64_t buffer_addr;       /* Address of the descriptor's data buffer */
+	uint16_t length;    /* Data buffer length */
+	uint8_t cso;        /* Checksum offset */
+	uint8_t cmd;        /* Descriptor control */
+	uint8_t status;     /* Descriptor status */
+	uint8_t css;        /* Checksum start */
+	uint16_t special;
 };
 
 /* Transmit Descriptor bit definitions */
