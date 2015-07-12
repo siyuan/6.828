@@ -5,8 +5,10 @@
 #include <inc/memlayout.h>
 #include <kern/pmap.h>
 #include <kern/e1000_hw.h>
+#include <inc/string.h>
 
 volatile uint8_t *e1000bar0;
+struct e1000_tx_desc *desc; // kernel virtual addr of transmit descriptor
 
 int e1000_attach (struct pci_func *pcif)
 {
@@ -25,7 +27,6 @@ void e1000_init (struct pci_func *pcif)
 	struct Page *pp, *pptmp;
 	physaddr_t patmp;
 	int i;
-	struct e1000_tx_desc *desc;
 
 	pp = page_alloc(ALLOC_ZERO);
 	pp->pp_ref++;
@@ -37,6 +38,8 @@ void e1000_init (struct pci_func *pcif)
 		patmp = page2pa(pptmp);
 		(desc + 2 * i)->buffer_addr = patmp;
 		(desc + 2 * i + 1)->buffer_addr = patmp + MAX_ETH_PAC;
+		(desc + 2 * i)->cmd |= (1 << 3);
+		(desc + 2 * i + 1)->cmd |= (1 << 3);
 	}
 
 	*((uint32_t *)(e1000bar0 + E1000_TDBAL)) = page2pa(pp);
@@ -49,4 +52,21 @@ void e1000_init (struct pci_func *pcif)
 	*(e1000bar0 + E1000_TCTL) |= (0x10 << 4);
 	*(e1000bar0 + E1000_TCTL) |= (0x40 << 12);
 	*((uint32_t *)(e1000bar0 + E1000_TIPG)) = 10;
+
+	//test trans
+	uint8_t test[] = {0, 7 ,8, 1, 5, 2, 3};
+	e1000_trans_pack(test, sizeof(test));
+}
+
+void e1000_trans_pack(uint8_t *pack, int len)
+{
+	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_TDT));
+	static int pack_num = 0;
+	if (pack_num <= TX_DESC_NUM)
+		pack_num++;
+	if (((desc+tail)->status & 1) || (pack_num <= TX_DESC_NUM)) {
+		memmove(KADDR((desc+tail)->buffer_addr), pack, len);
+		*((uint32_t *)(e1000bar0 + E1000_TDT)) =
+			(*((uint32_t *)(e1000bar0 + E1000_TDT)) + 1) % TX_DESC_NUM;
+	}
 }
