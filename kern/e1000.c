@@ -52,13 +52,9 @@ void e1000_init (struct pci_func *pcif)
 	*(e1000bar0 + E1000_TCTL) |= (0x10 << 4);
 	*(e1000bar0 + E1000_TCTL) |= (0x40 << 12);
 	*((uint32_t *)(e1000bar0 + E1000_TIPG)) = 10;
-
-	//test trans
-	uint8_t test[] = {0, 7 ,8, 1, 5, 2, 3};
-	e1000_trans_pack(test, sizeof(test));
 }
 
-void e1000_trans_pack(uint8_t *pack, int len)
+int e1000_trans_pack(uint8_t *pack, int len)
 {
 	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_TDT));
 	static int pack_num = 0;
@@ -70,5 +66,7 @@ void e1000_trans_pack(uint8_t *pack, int len)
 		(desc+tail)->length = len;
 		*((uint32_t *)(e1000bar0 + E1000_TDT)) =
 			(*((uint32_t *)(e1000bar0 + E1000_TDT)) + 1) % TX_DESC_NUM;
+		return 0;
 	}
+	return -1;
 }
