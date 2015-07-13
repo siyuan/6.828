@@ -122,3 +122,9 @@ sys_time_msec(void)
 {
 	return (unsigned int) syscall(SYS_time_msec, 0, 0, 0, 0, 0, 0);
 }
+
+int
+sys_trans_pack(uint8_t *pack, int len)
+{
+	return syscall(SYS_trans_pack, (uint32_t)pack, (uint32_t)len, 0, 0, 0, 0);
+}
