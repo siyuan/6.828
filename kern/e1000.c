@@ -66,6 +66,8 @@ void e1000_trans_pack(uint8_t *pack, int len)
 		pack_num++;
 	if (((desc+tail)->status & 1) || (pack_num <= TX_DESC_NUM)) {
 		memmove(KADDR((desc+tail)->buffer_addr), pack, len);
+		(desc+tail)->cmd |= 1;
+		(desc+tail)->length = len;
 		*((uint32_t *)(e1000bar0 + E1000_TDT)) =
 			(*((uint32_t *)(e1000bar0 + E1000_TDT)) + 1) % TX_DESC_NUM;
 	}
