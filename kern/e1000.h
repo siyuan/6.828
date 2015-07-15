@@ -7,5 +7,5 @@
 
 int e1000_attach (struct pci_func *pcif);
 void e1000_init (struct pci_func *pcif);
-int e1000_trans_pack(uint8_t *pack, int len);
+int e1000_trans_pack(char *pack, int len);
 #endif	// JOS_KERN_E1000_H
