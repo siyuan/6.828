@@ -58,6 +58,7 @@ int e1000_trans_pack(char *pack, int len)
 {
 	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_TDT));
 	static int pack_num = 0;
+	cprintf("e1000_trans_pack ,len %d\n", len);
 	if (pack_num <= TX_DESC_NUM)
 		pack_num++;
 	if (((desc+tail)->status & 1) || (pack_num <= TX_DESC_NUM)) {
