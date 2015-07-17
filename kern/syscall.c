@@ -415,7 +415,7 @@ sys_time_msec(void)
 
 // transmit packets
 static int
-sys_trans_pack(uint8_t *pack, int len)
+sys_trans_pack(char *pack, int len)
 {
 	return e1000_trans_pack(pack, len);
 }
@@ -464,7 +464,7 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	else if (syscallno == SYS_time_msec)
 		return sys_time_msec();
 	else if (syscallno == SYS_trans_pack)
-		return sys_trans_pack((uint8_t *)a1, a2);
+		return sys_trans_pack((char *)a1, a2);
 	else
 		return -E_INVAL;
 }

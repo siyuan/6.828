@@ -54,7 +54,7 @@ void e1000_init (struct pci_func *pcif)
 	*((uint32_t *)(e1000bar0 + E1000_TIPG)) = 10;
 }
 
-int e1000_trans_pack(uint8_t *pack, int len)
+int e1000_trans_pack(char *pack, int len)
 {
 	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_TDT));
 	static int pack_num = 0;
