@@ -33,9 +33,6 @@ umain(int argc, char **argv)
 				       "Packet %02d", i);
 		cprintf("Transmitting packet %d\n", i);
 		ipc_send(output_envid, NSREQ_OUTPUT, pkt, PTE_P|PTE_W|PTE_U);
-		cprintf("output_envid 0x%x\n", output_envid);
-		cprintf("umain, pkt addr 0x%x\n", pkt);
-		cprintf("umain,  pkt->jp_len %d\n",  pkt->jp_len);
 		sys_page_unmap(0, pkt);
 	}
 
