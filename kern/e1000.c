@@ -9,6 +9,7 @@
 
 volatile uint8_t *e1000bar0;
 struct e1000_tx_desc *desc; // kernel virtual addr of transmit descriptor
+struct e1000_rx_desc *rx_desc; // kernel virtual addr of receive descriptor
 
 int e1000_attach (struct pci_func *pcif)
 {
@@ -19,6 +20,7 @@ int e1000_attach (struct pci_func *pcif)
 	e1000bar0 = (uint8_t *) KSTACKTOP;
 	cprintf("STATUS 0x%x\n", *((uint32_t *)(e1000bar0 + 8)));
 	e1000_init(pcif);
+	e1000_rx_init(pcif);
 	return 0;
 }
 
@@ -58,7 +60,6 @@ int e1000_trans_pack(char *pack, int len)
 {
 	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_TDT));
 	static int pack_num = 0;
-	cprintf("e1000_trans_pack ,len %d\n", len);
 	if (pack_num <= TX_DESC_NUM)
 		pack_num++;
 	if (((desc+tail)->status & 1) || (pack_num <= TX_DESC_NUM)) {
@@ -70,4 +71,48 @@ int e1000_trans_pack(char *pack, int len)
 		return 0;
 	}
 	return -1;
+}
+
+void e1000_rx_init (struct pci_func *pcif)
+{
+	struct Page *rx_pp, *pp_tmp;
+	physaddr_t pa_tmp;
+	int i;
+
+	// Ethernet address
+	*((uint32_t *)(e1000bar0 + E1000_RA)) = 0x12005452;
+	*((uint32_t *)(e1000bar0 + E1000_RA + 4)) = 0x5634 | (1 << 31);
+	// Initialize the MTA (Multicast Table Array) to 0b
+	*((uint32_t *)(e1000bar0 + E1000_MTA + 0)) = 0;
+	*((uint32_t *)(e1000bar0 + E1000_MTA + 1)) = 0;
+	*((uint32_t *)(e1000bar0 + E1000_MTA + 2)) = 0;
+	*((uint32_t *)(e1000bar0 + E1000_MTA + 3)) = 0;
+	// Don't use interrupts
+	*((uint32_t *)(e1000bar0 + E1000_IMS)) = 0;
+	// eceive descriptor list
+	rx_pp = page_alloc(ALLOC_ZERO);
+	rx_pp->pp_ref++;
+	rx_desc = page2kva(rx_pp);
+	for (i=0; i<RX_DESC_NUM/2; i++) {
+		pp_tmp = page_alloc(ALLOC_ZERO);
+		pp_tmp->pp_ref++;
+		pa_tmp = page2pa(pp_tmp);
+		(rx_desc + 2 * i)->buffer_addr = pa_tmp;
+		(rx_desc + 2 * i + 1)->buffer_addr = pa_tmp + 2048;
+	}
+	*((uint32_t *)(e1000bar0 + E1000_RDBAL)) = page2pa(rx_pp);
+	*((uint32_t *)(e1000bar0 + E1000_RDBAH)) = 0;
+	// Receive Descriptor Length
+	*((uint32_t *)(e1000bar0 + E1000_RDLEN)) = RX_DESC_NUM * sizeof (struct e1000_rx_desc);
+	// head and tail
+	*((uint32_t *)(e1000bar0 + E1000_RDH)) = 0;
+	*((uint32_t *)(e1000bar0 + E1000_RDT)) = RX_DESC_NUM - 1;
+	// Receive Control
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) |= E1000_RCTL_EN;
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~E1000_RCTL_LPE;
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~E1000_RCTL_LBM_TCVR;
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~(3 << 8);
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) |= E1000_RCTL_BAM;
+	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~(3 << 16); // 2048
+
 }
