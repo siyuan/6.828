@@ -116,3 +116,18 @@ void e1000_rx_init (struct pci_func *pcif)
 	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~(3 << 16); // 2048
 
 }
+
+int e1000_rx_pack(char *pack, int *len)
+{
+	uint32_t tail = *((uint32_t *)(e1000bar0 + E1000_RDT));
+	*len = 0;
+	if ((rx_desc + tail + 1)->status & 1) {
+		*len = (rx_desc + tail + 1)->length;
+		memmove(pack, KADDR((rx_desc + tail + 1)->buffer_addr), *len);
+		*((uint32_t *)(e1000bar0 + E1000_RDT)) =
+			(*((uint32_t *)(e1000bar0 + E1000_RDT)) + 1)
+			% RX_DESC_NUM;
+		return 0;
+	}
+	return -1;
+}
