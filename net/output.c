@@ -11,13 +11,13 @@ output(envid_t ns_envid)
 	// LAB 6: Your code here:
 	// 	- read a packet from the network server
 	//	- send the packet to the device driver
-	int r, ret;
+	int ret;
 	int32_t req;
 	struct jif_pkt *pkt;
 
 	while (1){
-		req = ipc_recv(NULL, (void *)REQVA, NULL);
-		pkt = (struct jif_pkt *)REQVA;
+		req = ipc_recv(NULL, &nsipcbuf, NULL);
+		pkt = &nsipcbuf.pkt;
 		if (req == NSREQ_OUTPUT) {
 			ret = sys_trans_pack(pkt->jp_data, pkt->jp_len);
 		}
