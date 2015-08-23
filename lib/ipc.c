@@ -30,6 +30,7 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 		r = sys_ipc_recv(pg);
 	else
 		r = sys_ipc_recv((void *)UTOP);
+	cprintf("%s: %d\n", __func__, __LINE__);
 	if (r < 0) {
 		if (from_env_store)
 			*from_env_store = 0;
@@ -37,6 +38,7 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 			*perm_store = 0;
 		return r;
 	}
+	cprintf("%s: %d\n", __func__, __LINE__);
 	if (from_env_store)
 		*from_env_store = thisenv->env_ipc_from;
 	if (perm_store)
@@ -59,6 +61,7 @@ ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
 	//panic("ipc_send not implemented");
 	int r;
 	while (1) {
+		cprintf("ipc_send\n");
 		if (pg){
 			r = sys_ipc_try_send(to_env, val, pg, perm);
 		}

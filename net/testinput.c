@@ -95,7 +95,9 @@ umain(int argc, char **argv)
 		envid_t whom;
 		int perm;
 
+		cprintf("%s: %d\n", __func__, __LINE__);
 		int32_t req = ipc_recv((int32_t *)&whom, pkt, &perm);
+		cprintf("%s: %d\n", __func__, __LINE__);
 		if (req < 0)
 			panic("ipc_recv: %e", req);
 		if (whom != input_envid)
@@ -103,6 +105,7 @@ umain(int argc, char **argv)
 		if (req != NSREQ_INPUT)
 			panic("Unexpected IPC %d", req);
 
+		cprintf("%s: %d\n", __func__, __LINE__);
 		hexdump("input: ", pkt->jp_data, pkt->jp_len);
 		cprintf("\n");
 
