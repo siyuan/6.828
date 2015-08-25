@@ -128,3 +128,9 @@ sys_trans_pack(char *pack, int len)
 {
 	return syscall(SYS_trans_pack, 0, (uint32_t)pack, (uint32_t)len, 0, 0, 0);
 }
+
+int
+sys_receive_pack(char *pack, int *len)
+{
+	return syscall(SYS_receive_pack, 0, (uint32_t)pack, (uint32_t)len, 0, 0, 0);
+}

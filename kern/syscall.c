@@ -420,6 +420,13 @@ sys_trans_pack(char *pack, int len)
 	return e1000_trans_pack(pack, len);
 }
 
+// receive packets
+static int
+sys_receive_pack(char *pack, int *len)
+{
+	return e1000_rx_pack(pack, len);
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -465,6 +472,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_time_msec();
 	else if (syscallno == SYS_trans_pack)
 		return sys_trans_pack((char *)a1, a2);
+	else if (syscallno == SYS_receive_pack)
+		return sys_receive_pack((char *)a1, (int *)a2);
 	else
 		return -E_INVAL;
 }
