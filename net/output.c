@@ -27,7 +27,6 @@ output(envid_t ns_envid)
 		}
 		pkt = &nsipcbuf.pkt;
 		if (req == NSREQ_OUTPUT) {
-			cprintf("output: pkt->jp_len 0x%x\n",pkt->jp_len);
 			r = sys_trans_pack(pkt->jp_data, pkt->jp_len);
 			if (r == 0) {
 			}
