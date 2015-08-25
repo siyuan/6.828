@@ -396,13 +396,11 @@ sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
 	//panic("sys_ipc_recv not implemented");
-		cprintf("%s: %d\n", __func__, __LINE__);
 	curenv->env_ipc_recving = 1;
 	if (((size_t)dstva < UTOP) && ((size_t)dstva % PGSIZE))
 		return -E_INVAL;
 	curenv->env_ipc_dstva = dstva;
 	curenv->env_status = ENV_NOT_RUNNABLE;
-	sys_yield();
 	return 0;
 }
 

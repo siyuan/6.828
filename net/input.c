@@ -20,9 +20,7 @@ input(envid_t ns_envid)
 			panic("sys_page_map: %e", r);
 		memset(&nsipcbuf, 0, PGSIZE);
 		r = sys_receive_pack(nsipcbuf.pkt.jp_data, &nsipcbuf.pkt.jp_len);
-		//cprintf("%s: nsipcbuf.pkt.jp_len 0x%x\n", __func__, nsipcbuf.pkt.jp_len);
 		if (r == 0) {
-			cprintf("%s: %d\n", __func__, __LINE__);
 			ipc_send(ns_envid, NSREQ_INPUT, &nsipcbuf, PTE_P|PTE_W|PTE_U);
 		}
 		sys_page_unmap(0, &nsipcbuf);

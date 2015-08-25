@@ -106,7 +106,7 @@ void e1000_rx_init (struct pci_func *pcif)
 	*((uint32_t *)(e1000bar0 + E1000_RDLEN)) = RX_DESC_NUM * sizeof (struct e1000_rx_desc);
 	// head and tail
 	*((uint32_t *)(e1000bar0 + E1000_RDH)) = 0;
-	*((uint32_t *)(e1000bar0 + E1000_RDT)) = RX_DESC_NUM - 1; 
+	*((uint32_t *)(e1000bar0 + E1000_RDT)) = RX_DESC_NUM - 1;
 	// Receive Control
 	*((uint32_t *)(e1000bar0 + E1000_RCTL)) |= E1000_RCTL_EN;
 	*((uint32_t *)(e1000bar0 + E1000_RCTL)) &= ~E1000_RCTL_LPE;
@@ -124,13 +124,12 @@ int e1000_rx_pack(char *pack, int *len)
 	struct e1000_rx_desc *rx_tmp;
 	*len = 0;
 
-	if ((rx_tmp = rx_desc + (tail+1) % RX_DESC_NUM)->status & 1) {
-	cprintf("tail %d\n", tail);
+	if ((rx_tmp = rx_desc + (tail + 1) % RX_DESC_NUM)->status & 1) {
 		*len = rx_tmp->length;
 		memmove(pack, KADDR(rx_tmp->buffer_addr), *len);
 		*((uint32_t *)(e1000bar0 + E1000_RDT)) =
 			(*((uint32_t *)(e1000bar0 + E1000_RDT)) + 1)
-			% (RX_DESC_NUM);
+			% RX_DESC_NUM;
 		return 0;
 	}
 	return -1;
