@@ -314,6 +314,7 @@ umain(int argc, char **argv)
 	while (1) {
 		unsigned int clientlen = sizeof(client);
 		// Wait for client connection
+		cprintf("%s %d\n", __func__, __LINE__);
 		if ((clientsock = accept(serversock,
 					 (struct sockaddr *) &client,
 					 &clientlen)) < 0)

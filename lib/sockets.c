@@ -51,10 +51,13 @@ int
 accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int r;
+	cprintf("%s %d\n", __func__, __LINE__);
 	if ((r = fd2sockid(s)) < 0)
 		return r;
+	cprintf("%s %d\n", __func__, __LINE__);
 	if ((r = nsipc_accept(r, addr, addrlen)) < 0)
 		return r;
+	cprintf("%s %d\n", __func__, __LINE__);
 	return alloc_sockfd(r);
 }
 

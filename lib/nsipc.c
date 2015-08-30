@@ -2,7 +2,7 @@
 #include <inc/lib.h>
 #include <lwip/sockets.h>
 
-#define debug 0
+#define debug 1
 
 // Virtual address at which to receive page mappings containing client requests.
 #define REQVA		0x0ffff000
@@ -26,6 +26,7 @@ nsipc(unsigned type)
 		cprintf("[%08x] nsipc %d\n", thisenv->env_id, type);
 
 	ipc_send(nsenv, type, &nsipcbuf, PTE_P|PTE_W|PTE_U);
+	cprintf("%s %d\n", __func__, __LINE__);
 	return ipc_recv(NULL, NULL, NULL);
 }
 
@@ -35,7 +36,9 @@ nsipc_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 	int r;
 
 	nsipcbuf.accept.req_s = s;
+	cprintf("%s %d\n", __func__, __LINE__);
 	if ((r = nsipc(NSREQ_ACCEPT)) >= 0) {
+		cprintf("%s %d\n", __func__, __LINE__);
 		struct Nsret_accept *ret = &nsipcbuf.acceptRet;
 		memmove(addr, &ret->ret_addr, ret->ret_addrlen);
 		*addrlen = ret->ret_addrlen;
