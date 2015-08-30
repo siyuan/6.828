@@ -206,9 +206,12 @@ sys_arch_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t tm_msec)
 {
     assert(!mboxes[mbox].freed);
 
+  cprintf("%s %d\n", __func__, __LINE__);
     u32_t waited = sys_arch_sem_wait(mboxes[mbox].queued_msg, tm_msec);
-    if (waited == SYS_ARCH_TIMEOUT)
+    if (waited == SYS_ARCH_TIMEOUT){
+  cprintf("%s %d return %d\n", __func__, __LINE__, waited);
 	return waited;
+    }
 
     int slot = mboxes[mbox].head;
     if (slot == -1)
@@ -220,7 +223,9 @@ sys_arch_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t tm_msec)
     if (mboxes[mbox].head == mboxes[mbox].nextq)
 	mboxes[mbox].head = -1;
 
+  cprintf("%s %d\n", __func__, __LINE__);
     sys_sem_signal(mboxes[mbox].free_msg);
+  cprintf("%s %d\n", __func__, __LINE__);
     return waited;
 }
 

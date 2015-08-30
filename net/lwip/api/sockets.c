@@ -255,10 +255,12 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 
   LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_accept(%d)...\n", s));
   sock = get_socket(s);
+  cprintf("%s %d\n", __func__, __LINE__);
   if (!sock)
     return -1;
 
   newconn = netconn_accept(sock->conn);
+  cprintf("%s %d\n", __func__, __LINE__);
   if (!newconn) {
     LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_accept(%d) failed, err=%d\n", s, sock->conn->err));
     sock_set_errno(sock, err_to_errno(sock->conn->err));
@@ -267,9 +269,12 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 
   /* get the IP address and port of the remote host */
   err = netconn_peer(newconn, &naddr, &port);
+  cprintf("%s %d\n", __func__, __LINE__);
   if (err != ERR_OK) {
     netconn_delete(newconn);
+  cprintf("%s %d\n", __func__, __LINE__);
     sock_set_errno(sock, err_to_errno(err));
+  cprintf("%s %d\n", __func__, __LINE__);
     return -1;
   }
 
@@ -285,9 +290,12 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   SMEMCPY(addr, &sin, *addrlen);
 
   newsock = alloc_socket(newconn);
+  cprintf("%s %d\n", __func__, __LINE__);
   if (newsock == -1) {
     netconn_delete(newconn);
+  cprintf("%s %d\n", __func__, __LINE__);
     sock_set_errno(sock, ENFILE);
+  cprintf("%s %d\n", __func__, __LINE__);
     return -1;
   }
   LWIP_ASSERT("invalid socket index", (newsock >= 0) && (newsock < NUM_SOCKETS));
@@ -296,6 +304,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   LWIP_ASSERT("invalid socket pointer", nsock != NULL);
 
   sys_sem_wait(socksem);
+  cprintf("%s %d\n", __func__, __LINE__);
   /* See event_callback: If data comes in right away after an accept, even
    * though the server task might not have created a new socket yet.
    * In that case, newconn->socket is counted down (newconn->socket--),
@@ -310,6 +319,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   LWIP_DEBUGF(SOCKETS_DEBUG, (" port=%u\n", port));
 
   sock_set_errno(sock, 0);
+  cprintf("%s %d\n", __func__, __LINE__);
   return newsock;
 }
 

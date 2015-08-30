@@ -273,13 +273,16 @@ netconn_accept(struct netconn *conn)
   LWIP_ERROR("netconn_accept: invalid acceptmbox", (conn->acceptmbox != SYS_MBOX_NULL), return NULL;);
 
 #if LWIP_SO_RCVTIMEO
+  cprintf("%s %d\n", __func__, __LINE__);
   if (sys_arch_mbox_fetch(conn->acceptmbox, (void *)&newconn, conn->recv_timeout) == SYS_ARCH_TIMEOUT) {
     newconn = NULL;
   } else
 #else
+  cprintf("%s %d\n", __func__, __LINE__);
   sys_arch_mbox_fetch(conn->acceptmbox, (void *)&newconn, 0);
 #endif /* LWIP_SO_RCVTIMEO*/
   {
+  cprintf("%s %d\n", __func__, __LINE__);
     /* Register event with callback */
     API_EVENT(conn, NETCONN_EVT_RCVMINUS, 0);
 
@@ -289,10 +292,12 @@ netconn_accept(struct netconn *conn)
       struct api_msg msg;
       msg.function = do_recv;
       msg.msg.conn = conn;
+  cprintf("%s %d\n", __func__, __LINE__);
       TCPIP_APIMSG(&msg);
     }
 #endif /* TCP_LISTEN_BACKLOG */
   }
+  cprintf("%s %d\n", __func__, __LINE__);
 
   return newconn;
 }
