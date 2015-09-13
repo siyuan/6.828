@@ -73,11 +73,18 @@ send_header(struct http_request *req, int code)
 	return 0;
 }
 
+#include "lib/fd.c"
 static int
 send_data(struct http_request *req, int fd)
 {
 	// LAB 6: Your code here.
-	panic("send_data not implemented");
+	//panic("send_data not implemented");
+	int r;
+	char buf[512];
+	struct Fd *fds = INDEX2FD(fd);
+	read(fd, buf, 512);
+	write(req->sock, buf, fds->fd_offset);
+	return 0;
 }
 
 static int
@@ -223,7 +230,11 @@ send_file(struct http_request *req)
 	// set file_size to the size of the file
 
 	// LAB 6: Your code here.
-	panic("send_file not implemented");
+	//panic("send_file not implemented");
+	if ((fd = open(req->url, O_RDONLY)) < 0) {
+		send_error(req, 404);
+		goto end;
+	}
 
 	if ((r = send_header(req, 200)) < 0)
 		goto end;
