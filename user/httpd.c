@@ -75,6 +75,8 @@ send_header(struct http_request *req, int code)
 
 #include "lib/fd.c"
 static int
+send_error(struct http_request *req, int code);
+static int
 send_data(struct http_request *req, int fd)
 {
 	// LAB 6: Your code here.
@@ -82,7 +84,11 @@ send_data(struct http_request *req, int fd)
 	int r;
 	char buf[512];
 	struct Fd *fds = INDEX2FD(fd);
-	read(fd, buf, 512);
+	r = read(fd, buf, 512);
+	if (r == 0) {
+		send_error(req, 404);
+		return -1;
+	}
 	write(req->sock, buf, fds->fd_offset);
 	return 0;
 }
