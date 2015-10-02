@@ -74,7 +74,11 @@ open(const char *path, int mode)
 	int r;
 	if ((r = fd_alloc(&fd_store)) < 0)
 		return r;
-	memmove(fsipcbuf.open.req_path, path, MAXPATHLEN);
+	sys_page_alloc(0, fd_store, PTE_P|PTE_W|PTE_U|PTE_SHARE);
+	if (0xeebfe000 - (int)path < MAXPATHLEN)
+		memmove(fsipcbuf.open.req_path, path, 0xeebfe000 - (int)path);
+	else
+		memmove(fsipcbuf.open.req_path, path, MAXPATHLEN);
 	fsipcbuf.open.req_path[MAXPATHLEN-1] = 0;
 	fsipcbuf.open.req_omode = mode;
 	if ((r = fsipc(FSREQ_OPEN, fd_store)) < 0) {
